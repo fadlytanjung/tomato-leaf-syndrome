@@ -38,8 +38,7 @@ def classification():
 
 @app.route('/')
 def home():
-    path = request.path
-    return render_template('home.html', data=path)
+    return jsonify({ 'code':200, 'message' : 'Success' ,'data':'tms-service is working' }), 200
 
 @app.route('/train')
 def train():
@@ -52,8 +51,8 @@ def train_process():
 
     model = obj.modelCNN()
     # obj.train(model,'images_after_prepro/train','images_after_prepro/validation')
-    print("last modified: %s" % time.ctime(os.path.getmtime('data/model_new.h5')))
-    print("created: %s" % time.ctime(os.path.getctime('data/model_new.h5')))
+    print("last modified: %s" % time.ctime(os.path.getmtime('data/model.h5')))
+    print("created: %s" % time.ctime(os.path.getctime('data/model.h5')))
     try:
         return jsonify({ 'code':200, 'message' : 'Success' ,'data':'success','updated': "Last Model Updated: %s" % time.ctime(os.path.getmtime('data/model_new.h5'))}), 200
     except e:

@@ -31,19 +31,10 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/classification')
-def classification():
-    path = request.path
-    return render_template('classification.html', data=path)
-
 @app.route('/')
 def home():
     return jsonify({ 'code':200, 'message' : 'Success' ,'data':'tms-service is working' }), 200
 
-@app.route('/train')
-def train():
-    path = request.path
-    return render_template('train.html', data=path)
 
 @app.route('/train_process', methods=['POST'])
 def train_process():
@@ -68,30 +59,31 @@ def classification_process():
         if filetxt and allowed_file(filetxt.filename):
             filename = secure_filename(filetxt.filename)
             print(filename,filetxt.filename)
-            filetxt.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            filetxt.save(os.path.join(app.config['UPLOAD_FOLDER'], 'uploaded_image.'+filename.split('.')[1]))
         else:
             error = "Format file salah"
     
-    img = obj.read_img('static/tempData/'+filename)
+    fileExt = filename.split('.')[1]
+    img = obj.read_img('static/tempData/uploaded_image.'+fileExt)
 
     imgScale = obj.scale_img(img)
     imgGray = obj.grayscale(imgScale)
     imgHsv = obj.rgb_hsv(imgScale)
     imgThresh = obj.threshold(imgScale)
 
-    obj.save_img(imgScale,'scaled_image.'+filename.split('.')[1])
-    obj.save_img(imgGray,'grayscale_image.'+filename.split('.')[1])
-    obj.save_img(imgHsv,'rgbToHsv_image.'+filename.split('.')[1])
-    obj.save_img(imgThresh,'treshold_image.'+filename.split('.')[1])
+    obj.save_img(imgScale,'scaled_image.'+fileExt)
+    obj.save_img(imgGray,'grayscale_image.'+fileExt)
+    obj.save_img(imgHsv,'rgbToHsv_image.'+fileExt)
+    obj.save_img(imgThresh,'treshold_image.'+fileExt)
     
     model = obj.loadModel('data/model.h5')
-    predictImage = obj.predict(model, 'static/tempData/treshold_image.'+filename.split('.')[1]) 
+    predictImage = obj.predict(model, 'static/tempData/treshold_image.'+fileExt) 
 
     try:
         return jsonify({ 'code':200, 'message' : 'Success' ,'data':{
             'classes': predictImage,
-            'image': 'static/tempData/'+filename,
-            'image_after_preprocessing': 'static/tempData/'+'treshold_image.'+filename.split('.')[1]
+            'image': 'static/tempData/uploaded_image.'+fileExt,
+            'image_after_preprocessing': 'static/tempData/'+'treshold_image.'+fileExt
         }}), 200
     except e:
         return jsonify({ 'code':500, 'message' : 'Success', 'error': str(e) }), 500
